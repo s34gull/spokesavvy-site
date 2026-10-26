@@ -13,3 +13,9 @@ a { color: var(--accent); }
 .card { background: var(--card); border-radius: 14px; padding: 16px 20px; margin: 16px 0; }
 nav { margin-top: 40px; font-size: 0.95rem; }
 nav a { margin-right: 16px; }
+h3 { font-size: 1.05rem; margin: 24px 0 6px; }
+code { font: 0.92em ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+.table { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--card); }
+th { color: var(--muted); font-weight: 600; }
