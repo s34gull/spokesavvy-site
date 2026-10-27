@@ -1,18 +1,44 @@
-"""Render the app repo's docs/legal/privacy-policy.md into privacy/index.html.
+"""Render a legal page from the app repo's docs/legal/ into this site.
 
-Usage: python3 tools/render_policy.py <path to privacy-policy.md> privacy/index.html
+Usage:
+  python3 tools/render_policy.py <path to privacy-policy.md> privacy/index.html
+  python3 tools/render_policy.py <path to terms-of-use.md> terms/index.html
 
-Handles only the subset the policy uses: #/##/### headings, paragraphs,
+Handles only the subset the documents use: #/##/### headings, paragraphs,
 - and 1. lists, one pipe table, **bold**, *em*, `code`, [text](url), and the
-bold header lines at the top. Fails loudly on anything else, and on a
-horizontal rule (the builder notes must never be published).
+bold header lines at the top. Fails loudly on anything else, on a horizontal
+rule (the builder notes must never be published), and on an unfilled
+"OWNER:" blank.
 """
 import html
+import os
 import re
 import sys
 
+# Each publishable document: its page title, meta description, and the nav
+# links shown under it (every legal page links to the other one).
+PAGES = {
+    "privacy-policy.md": (
+        "Privacy Policy",
+        "What Spoke Savvy collects, why, where it goes, how long it is kept, and how to delete it.",
+        [("/", "Home"), ("/support/", "Support"), ("/terms/", "Terms of Use")],
+    ),
+    "terms-of-use.md": (
+        "Terms of Use",
+        "The agreement for using Spoke Savvy: who can use it, what it is and is not, and the rules.",
+        [("/", "Home"), ("/support/", "Support"), ("/privacy/", "Privacy Policy")],
+    ),
+}
+
 src, out = sys.argv[1], sys.argv[2]
-lines = open(src, encoding="utf-8").read().split("\n")
+name = os.path.basename(src)
+if name not in PAGES:
+    raise SystemExit(f"unknown document {name}: add it to PAGES")
+page_title, description, nav = PAGES[name]
+text = open(src, encoding="utf-8").read()
+if "OWNER:" in text:
+    raise SystemExit("unfilled OWNER: blank: fill it in the source before publishing")
+lines = text.split("\n")
 BLOCK = re.compile(r"(#{1,3} |- |\d+\. |\|)")
 
 
@@ -86,18 +112,17 @@ page = f"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy Policy · Spoke Savvy</title>
-  <meta name="description" content="What Spoke Savvy collects, why, where it goes, how long it is kept, and how to delete it.">
+  <title>{page_title} · Spoke Savvy</title>
+  <meta name="description" content="{html.escape(description)}">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <main>
-    <!-- Rendered by tools/render_policy.py from docs/legal/privacy-policy.md in s34gull/spoke-savvy. Edit that file, then re-render. -->
+    <!-- Rendered by tools/render_policy.py from docs/legal/{name} in s34gull/spoke-savvy. Edit that file, then re-render. -->
 {chr(10).join('    ' + b for b in body)}
 
     <nav>
-      <a href="/">Home</a>
-      <a href="/support/">Support</a>
+{chr(10).join(f'      <a href="{href}">{label}</a>' for href, label in nav)}
     </nav>
   </main>
 </body>
